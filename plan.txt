@@ -1,0 +1,30 @@
+REQUIREMENT
+
+USER
+[ ] register by name, telephone number, email, and password.
+[ ] log in by specifying the email and password.
+[ ] log out
+
+RESERVATION
+USER
+[ ] create reservation up to 3 rooms by specifying the date and the preferred co-working space.
+[ ] receive email after successful reservation.
+[ ] can view the lists of past reservation.
+[ ] can view co-working space reservation (those are reserved)
+[ ] can edit co-working space reservation. --> check that new info can be reserved.
+[ ] can delete reservation
+ADMIN
+[ ] view any co-working space reservation.
+[ ] edit any co-working space reservation.
+[ ] delete any co-working space reservation.
+
+COWORKING SPACE
+USER
+[ ] get one 
+[ ] get all available by filter date and location
+ADMIN
+[ ] create new co-working space
+[ ] update info co-working space
+[ ] get all co-working space
+[ ] get one co-working space
+[ ] delete co-working space

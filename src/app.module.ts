@@ -5,6 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { CoworkingspaceModule } from './coworkingspace/coworkingspace.module';
+import { ReservationModule } from './reservation/reservation.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
+    CoworkingspaceModule,
+    ReservationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,4 +3,5 @@ export class RegisterDto {
   readonly password: string;
   readonly name: string;
   readonly tel: string;
+  readonly role: string;
 }

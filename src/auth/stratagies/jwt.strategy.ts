@@ -9,7 +9,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req) => {
-          return req?.cookies?.access_token || null; // Extract JWT from cookies
+          return req?.cookies?.access_token; // Extract JWT from cookies
         },
       ]),
       secretOrKey: configService.get<string>('JWT_SECRET', 'defaultSecret'), // Use the secret from environment variables
@@ -19,6 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     // This payload will be the decrypted token payload you provided when signing the token
+    console.log('Payload:', payload);
     return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }
