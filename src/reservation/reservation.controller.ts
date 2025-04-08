@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Request,
@@ -16,9 +16,6 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { UseGuards } from '@nestjs/common';
-import { CoworkingspaceService } from 'src/coworkingspace/coworkingspace.service';
-import { Coworkingspace } from 'src/coworkingspace/schemas/coworkingspace.schema';
-import { Reservation } from './schema/reservation.schema';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reservation')
@@ -32,9 +29,18 @@ export class ReservationController {
     return this.reservationService.create(createReservationDto, userId);
   }
 
-  @Get()
+  @Roles(Role.ADMIN)
+  @Get('/all')
   findAll() {
     return this.reservationService.findAll();
+  }
+
+  @Roles(Role.USER)
+  @Get('/myreservations')
+  findMy(@Request() req) {
+    const userId = req.user.userId;
+    console.log(userId);
+    return this.reservationService.findMy(userId);
   }
 
   @Get(':id')
@@ -42,7 +48,7 @@ export class ReservationController {
     return this.reservationService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateReservationDto: UpdateReservationDto,
@@ -50,8 +56,27 @@ export class ReservationController {
     return this.reservationService.update(id, updateReservationDto);
   }
 
+  @Roles(Role.USER)
+  @Put(':id/checkin')
+  checkin(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() updateReservationDto: UpdateReservationDto,
+  ) {
+    const userId = req.user.userId;
+    console.log(userId);
+    return this.reservationService.checkin(id, userId, updateReservationDto);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reservationService.remove(id);
+  remove(@Request() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+    return this.reservationService.remove(id, userId, userRole);
+  }
+
+  @Delete()
+  removeAll() {
+    return this.reservationService.removeAll();
   }
 }

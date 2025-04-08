@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Put,
 } from '@nestjs/common';
 import { CoworkingspaceService } from './coworkingspace.service';
 import { CreateCoworkingspaceDto } from './dto/create-coworkingspace.dto';
@@ -63,7 +64,7 @@ export class CoworkingspaceController {
 
   //update coworking space
   @Roles(Role.ADMIN)
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateCoworkingspaceDto: UpdateCoworkingspaceDto,

@@ -6,7 +6,7 @@ export type ReservationDocument = Reservation & Document;
 @Schema()
 export class Reservation {
   @Prop({ required: true })
-  user: string;
+  userId: string;
   @Prop({ required: true })
   coworkingspaceId: string;
   @Prop({ required: true })

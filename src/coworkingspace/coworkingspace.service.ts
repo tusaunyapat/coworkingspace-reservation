@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateCoworkingspaceDto } from './dto/create-coworkingspace.dto';
 import { UpdateCoworkingspaceDto } from './dto/update-coworkingspace.dto';
@@ -68,8 +68,18 @@ export class CoworkingspaceService {
     return `This action returns a #${id} coworkingspace`;
   }
 
-  update(id: string, updateCoworkingspaceDto: UpdateCoworkingspaceDto) {
-    return `This action updates a #${id} coworkingspace`;
+  async update(id: string, updateCoworkingspaceDto: UpdateCoworkingspaceDto) {
+    const updated = await this.coworkingspaceModel.findByIdAndUpdate(
+      id,
+      updateCoworkingspaceDto,
+      { new: true },
+    );
+
+    if (!updated) {
+      throw new NotFoundException(`Coworking space with ID ${id} not found`);
+    }
+
+    return updated;
   }
 
   remove(id: string) {
