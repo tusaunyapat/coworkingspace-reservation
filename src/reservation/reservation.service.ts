@@ -51,6 +51,7 @@ export class ReservationService {
     // Count the number of reservations that overlap with the requested time slot
     const overlappingReservations = await this.reservationModel.find({
       coworkingspaceId: createReservationDto.coworkingspaceId,
+      status: 'reserved',
       $or: [
         {
           startTime: { $lt: createReservationDto.endTime },

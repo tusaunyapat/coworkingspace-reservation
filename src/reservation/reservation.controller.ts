@@ -35,7 +35,6 @@ export class ReservationController {
     return this.reservationService.findAll();
   }
 
-  @Roles(Role.USER)
   @Get('/myreservations')
   findMy(@Request() req) {
     const userId = req.user.userId;
@@ -56,7 +55,6 @@ export class ReservationController {
     return this.reservationService.update(id, updateReservationDto);
   }
 
-  @Roles(Role.USER)
   @Put(':id/checkin')
   checkin(
     @Request() req,

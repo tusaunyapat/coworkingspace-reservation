@@ -1,18 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateCoworkingspaceDto } from './dto/create-coworkingspace.dto';
 import { UpdateCoworkingspaceDto } from './dto/update-coworkingspace.dto';
+import { Role } from 'src/shared/enums/roles.enum';
+import { Reservation } from 'src/reservation/schema/reservation.schema';
 import {
   Coworkingspace,
   CoworkingspaceDocument,
   CoworkingspaceSchema,
 } from './schemas/coworkingspace.schema';
+import { ReservationDocument } from 'src/reservation/schema/reservation.schema';
 import { Model } from 'mongoose';
 @Injectable()
 export class CoworkingspaceService {
   constructor(
     @InjectModel(Coworkingspace.name)
     private coworkingspaceModel: Model<CoworkingspaceDocument>,
+    @InjectModel(Reservation.name)
+    private reservationModel: Model<ReservationDocument>,
   ) {}
 
   async create(
@@ -24,44 +34,58 @@ export class CoworkingspaceService {
     return newCoworkingspace.save();
   }
 
-  findAll() {
-    return this.coworkingspaceModel.find().exec();
-  }
-
-  findAllAvailable(
+  async findAll(
     filter: {
       address?: string;
       date?: Date;
-      startTime?: string;
-      endTime?: string;
+      startTime?: Date;
+      endTime?: Date;
     } = {},
+    role: string,
   ) {
-    console.log(filter);
-    const query: any = {
-      $expr: { $ne: ['$num_booked', '$num_rooms'] }, // Ensure availability
-    };
-
-    if (filter.address) {
-      query.address = { $regex: filter.address, $options: 'i' }; // Case insensitive search
-    }
-    if (filter.date) {
-      const date = new Date(filter.date);
-      const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-      query.date = { $gte: startOfDay, $lte: endOfDay };
-    }
-    if (filter.startTime) {
-      const startTime = new Date(filter.startTime);
-      query.startTime = { $gte: startTime };
-    }
-    if (filter.endTime) {
-      const endTime = new Date(filter.endTime);
-      query.endTime = { $lte: endTime };
+    if (role === Role.ADMIN) {
+      // For admin, return all coworking spaces without filtering
+      return this.coworkingspaceModel.find().exec();
     }
 
-    console.log(query);
+    if (role === Role.USER) {
+      console.log('date', filter.date);
+      console.log('startTime', filter.startTime);
+      console.log('endTime', filter.endTime);
+      // Fetch all coworking spaces
+      const allCoworkingSpaces = await this.coworkingspaceModel.find().exec();
 
-    return this.coworkingspaceModel.find(query).exec();
+      // Use Promise.all with map to process all coworking spaces asynchronously
+      const availableCoworkingSpaces = await Promise.all(
+        allCoworkingSpaces.map(async (cws) => {
+          // Create a query for overlapping reservations
+          const overlappingReservations = await this.reservationModel.find({
+            coworkingspaceId: cws._id,
+            status: 'reserved',
+            date: filter.date,
+            $or: [
+              {
+                startTime: { $lt: filter.endTime },
+                endTime: { $gt: filter.startTime },
+              },
+            ],
+          });
+
+          console.log('Overlapping reservations:', overlappingReservations);
+
+          // Check if there are fewer overlapping reservations than the available rooms
+          if (overlappingReservations.length < cws.num_rooms) {
+            // Check filters and ensure the coworking space matches the requested criteria
+            console.log(cws._id);
+            return cws; // Return coworking space if conditions are met
+          }
+          return null; // Return null if the coworking space doesn't match the conditions
+        }),
+      );
+
+      // Filter out null results from the array
+      return availableCoworkingSpaces.filter((cws) => cws !== null);
+    }
   }
 
   findOne(id: string) {
