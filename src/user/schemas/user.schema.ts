@@ -9,7 +9,7 @@ export class User {
   @Prop({ required: true, unique: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, match: /^.{8,}$/ })
   password: string;
 
   @Prop({ required: true })

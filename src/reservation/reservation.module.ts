@@ -6,6 +6,7 @@ import { ReservationSchema } from './schema/reservation.schema';
 import { Reservation } from './schema/reservation.schema';
 import { Coworkingspace } from 'src/coworkingspace/schemas/coworkingspace.schema';
 import { CoworkingspaceSchema } from 'src/coworkingspace/schemas/coworkingspace.schema';
+import { MailModule } from 'src/mail/mail.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -18,6 +19,7 @@ import { CoworkingspaceSchema } from 'src/coworkingspace/schemas/coworkingspace.
         schema: CoworkingspaceSchema,
       },
     ]),
+    MailModule,
   ],
   controllers: [ReservationController],
   providers: [ReservationService],

@@ -31,6 +31,7 @@ export class CoworkingspaceService {
     const newCoworkingspace = new this.coworkingspaceModel(
       createCoworkingspaceDto,
     );
+
     return newCoworkingspace.save();
   }
 

@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { find } from 'rxjs';
 import { Role } from 'src/shared/enums/roles.enum';
+import { MailService } from 'src/mail/mail.service';
 @Injectable()
 export class ReservationService {
   constructor(
@@ -21,16 +22,18 @@ export class ReservationService {
     private reservationModel: Model<Reservation>,
     @InjectModel(Coworkingspace.name)
     private coworkingspaceModel: Model<Coworkingspace>,
+    private readonly mailService: MailService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   async create(
     createReservationDto: CreateReservationDto,
-    userId: string,
+    user: {},
   ): Promise<Reservation> {
     // Step 1: Check if the user already has 3 active reservations
+
     const reservationCount = await this.reservationModel.countDocuments({
-      userId: userId,
+      userId: user['userId'],
       status: 'reserved',
     });
 
@@ -47,11 +50,22 @@ export class ReservationService {
       throw new NotFoundException('Coworking space not found');
     }
 
+    if (
+      createReservationDto.startTime < coworkingSpace.openTime ||
+      createReservationDto.endTime > coworkingSpace.closeTime
+    ) {
+      throw new BadRequestException(
+        'You cannot reserved this duration, due to open hours of coworking space',
+      );
+    }
+
     // Step 3: Check if the time slot is available
     // Count the number of reservations that overlap with the requested time slot
+    console.log('date', createReservationDto.date);
     const overlappingReservations = await this.reservationModel.find({
       coworkingspaceId: createReservationDto.coworkingspaceId,
       status: 'reserved',
+      date: createReservationDto.date,
       $or: [
         {
           startTime: { $lt: createReservationDto.endTime },
@@ -71,13 +85,26 @@ export class ReservationService {
     // Step 5: Create the new reservation
     const newReservation = new this.reservationModel({
       ...createReservationDto,
-      userId: userId, // Automatically set user ID
+      userId: user['userId'], // Automatically set user ID
     });
 
     // Step 6: Update coworking space's booked room count
     coworkingSpace.num_booked += 1;
     await coworkingSpace.save();
 
+    const reservationDetails = {
+      date: createReservationDto.date,
+      time: `${createReservationDto.startTime} - ${createReservationDto.endTime}`,
+      location: coworkingSpace.address,
+      reservedAt: new Date().toDateString(),
+    };
+
+    const token = this.mailService.generateVerificationToken(user['email']); // implement this
+    console.log('token', token);
+    await this.mailService.sendReservationConfirmationEmail(
+      user['email'],
+      reservationDetails,
+    );
     return newReservation.save();
   }
 
@@ -86,7 +113,9 @@ export class ReservationService {
   }
 
   findMy(userId: string) {
-    return this.reservationModel.find({ userId: userId }).exec();
+    return this.reservationModel
+      .find({ userId: userId, status: 'reserved' })
+      .exec();
   }
 
   findOne(id: string) {

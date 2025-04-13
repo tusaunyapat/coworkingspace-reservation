@@ -25,8 +25,8 @@ export class ReservationController {
   @Post()
   create(@Request() req, @Body() createReservationDto: CreateReservationDto) {
     console.log(req.user);
-    const userId = req.user.userId; // Assuming the user ID is in req.user.id
-    return this.reservationService.create(createReservationDto, userId);
+    const user = req.user; // Assuming the user ID is in req.user.id
+    return this.reservationService.create(createReservationDto, user);
   }
 
   @Roles(Role.ADMIN)

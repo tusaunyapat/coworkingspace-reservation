@@ -29,4 +29,7 @@ export class UserService {
   // async remove(id: string): Promise<User> {
   //   return this.userModel.findByIdAndDelete(id).exec();
   // }
+  remove(id: string): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndDelete(id).exec();
+  }
 }
