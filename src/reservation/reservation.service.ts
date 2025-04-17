@@ -99,8 +99,6 @@ export class ReservationService {
       reservedAt: new Date().toDateString(),
     };
 
-    const token = this.mailService.generateVerificationToken(user['email']); // implement this
-    console.log('token', token);
     await this.mailService.sendReservationConfirmationEmail(
       user['email'],
       reservationDetails,
@@ -116,6 +114,10 @@ export class ReservationService {
     return this.reservationModel
       .find({ userId: userId, status: 'reserved' })
       .exec();
+  }
+
+  findMyHistory(userId: string) {
+    return this.reservationModel.find({ userId: userId }).exec();
   }
 
   findOne(id: string) {
