@@ -144,7 +144,14 @@
 						"exec": [
 							"pm.test(\"Register 201\", function () {",
 							"    pm.response.to.have.status(201);",
-							"})"
+							"})",
+							"",
+							"const response = pm.response.json()",
+							"console.log(response)",
+							"const new_user_id = response._id;",
+							"",
+							"pm.globals.set(\"global_user_ID\", new_user_id)",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -156,7 +163,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\" : \"aunyapatdoc@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Aunyapat\",\n    \"role\" : \"user\",\n    \"tel\" : \"0959501622\"\n}",
+					"raw": "{\n    \"email\" : \"aunyapat.doc@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Aunyapat\",\n    \"role\" : \"user\",\n    \"tel\" : \"0959501622\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -199,7 +206,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\" : \"aunyapatdoc@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Aunyapat\",\n    \"role\" : \"user\",\n    \"tel\" : \"0959501622\"\n}",
+					"raw": "{\n    \"email\" : \"aunyapat.doc@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Aunyapat\",\n    \"role\" : \"user\",\n    \"tel\" : \"0959501622\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -216,40 +223,6 @@
 					"path": [
 						"user",
 						"register"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "log out 201",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Log out 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"})"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:3001/auth/logout",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3001",
-					"path": [
-						"auth",
-						"logout"
 					]
 				}
 			},
@@ -310,12 +283,16 @@
 					"script": {
 						"exec": [
 							"let response = pm.response.json()",
-							"console.log(response)",
+							"",
 							"pm.environment.set(\"TOKEN\", response.access_token);",
 							"",
 							"pm.test(\"Login\", function () {",
 							"    pm.response.to.have.status(201);",
-							"})"
+							"})",
+							"",
+							"",
+							"",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -511,6 +488,7 @@
 							"    pm.response.to.have.status(200);",
 							"    const responseData = pm.response.json(); // parse JSON body",
 							"    pm.expect(responseData).to.be.an(\"array\"); // ensure it's an array",
+							"    pm.expect(responseData.length).to.eql(0);  // check length",
 							"})"
 						],
 						"type": "text/javascript",
@@ -547,7 +525,7 @@
 			"response": []
 		},
 		{
-			"name": "create reservation B 1",
+			"name": "create reservation A 1",
 			"event": [
 				{
 					"listen": "test",
@@ -555,7 +533,12 @@
 						"exec": [
 							"pm.test(\"USER View Product\", function () {",
 							"    pm.response.to.have.status(201);",
-							"})"
+							"})",
+							"",
+							"const response = pm.response.json();",
+							"console.log(response)",
+							"const new_reservation_id = response._id;",
+							"pm.globals.set(\"global_reservation_ID\", new_reservation_id)"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -577,7 +560,64 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"coworkingspaceId\" : \"67fbd04e6553f4c2d7d7cca6\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"13.00\",\n    \"endTime\" : \"15.00\"\n}",
+					"raw": "{\n    \"coworkingspaceId\" : \"67ee6ca7249b127b4c31178f\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-09-03\",\n    \"startTime\" : \"12.00\",\n    \"endTime\" : \"16.00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3001/reservation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"reservation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create reservation B 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"USER View Product\", function () {",
+							"    pm.response.to.have.status(201);",
+							"})",
+							"",
+							"const response = pm.response.json();",
+							"console.log(response)",
+							"const new_reservation_id = response._id;",
+							"pm.globals.set(\"global_reservation_ID2\", new_reservation_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"coworkingspaceId\" : \"67ee6ca7249b127b4c31178f\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"13.00\",\n    \"endTime\" : \"15.00\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -629,7 +669,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"coworkingspaceId\" : \"67ee6cc0249b127b4c3117a3\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"11.00\",\n    \"endTime\" : \"14.00\"\n}",
+					"raw": "{\n    \"coworkingspaceId\" : \"67ee6ca7249b127b4c31178f\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"11.00\",\n    \"endTime\" : \"14.00\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -659,7 +699,9 @@
 						"exec": [
 							"pm.test(\"USER View Product\", function () {",
 							"    pm.response.to.have.status(400);",
-							"})"
+							"})",
+							"",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -681,7 +723,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"coworkingspaceId\" : \"67ee6cc0249b127b4c3117a3\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"12.00\",\n    \"endTime\" : \"15.00\"\n}",
+					"raw": "{\n    \"coworkingspaceId\" : \"67ee6ca7249b127b4c31178f\",\n    \"status\" : \"reserved\",\n    \"date\" : \"2025-04-03\",\n    \"startTime\" : \"12.00\",\n    \"endTime\" : \"15.00\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -741,7 +783,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3001/reservation/67fbe15492773aa8e90af0e7",
+					"raw": "http://localhost:3001/reservation/:reservation_ID",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -749,7 +791,13 @@
 					"port": "3001",
 					"path": [
 						"reservation",
-						"67fbe15492773aa8e90af0e7"
+						":reservation_ID"
+					],
+					"variable": [
+						{
+							"key": "reservation_ID",
+							"value": "{{global_reservation_ID}}"
+						}
 					]
 				}
 			},
@@ -785,7 +833,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3001/reservation/67fbe15492773aa8e90af0e7",
+					"raw": "http://localhost:3001/reservation/:reservatoin_ID",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -793,7 +841,13 @@
 					"port": "3001",
 					"path": [
 						"reservation",
-						"67fbe15492773aa8e90af0e7"
+						":reservatoin_ID"
+					],
+					"variable": [
+						{
+							"key": "reservatoin_ID",
+							"value": "{{global_reservation_ID}}"
+						}
 					]
 				}
 			},
@@ -972,7 +1026,9 @@
 						"exec": [
 							"pm.test(\"USER View Product\", function () {",
 							"    pm.response.to.have.status(200);",
-							"})"
+							"})",
+							"",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1002,7 +1058,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3001/reservation/67fbdba570fa161a33b4b1da",
+					"raw": "http://localhost:3001/reservation/:reservatoin_ID",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -1010,7 +1066,13 @@
 					"port": "3001",
 					"path": [
 						"reservation",
-						"67fbdba570fa161a33b4b1da"
+						":reservatoin_ID"
+					],
+					"variable": [
+						{
+							"key": "reservatoin_ID",
+							"value": "{{global_reservation_ID2}}"
+						}
 					]
 				}
 			},
@@ -1018,11 +1080,25 @@
 		},
 		{
 			"name": "delete one",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"USER View Product\", function () {",
+							"    pm.response.to.have.status(200);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3001/reservation/67fbdba570fa161a33b4b1da",
+					"raw": "http://localhost:3001/reservation/:reservation_ID",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -1030,7 +1106,65 @@
 					"port": "3001",
 					"path": [
 						"reservation",
-						"67fbdba570fa161a33b4b1da"
+						":reservation_ID"
+					],
+					"variable": [
+						{
+							"key": "reservation_ID",
+							"value": "{{global_reservation_ID2}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "del user Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"USER View Product\", function () {",
+							"    pm.response.to.have.status(200);",
+							"})",
+							"",
+							"pm.execution.setNextRequest(null)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3001/user/:user_ID",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"user",
+						":user_ID"
+					],
+					"variable": [
+						{
+							"key": "user_ID",
+							"value": "{{global_user_ID}}"
+						}
 					]
 				}
 			},
