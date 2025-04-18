@@ -8,7 +8,6 @@ export class MailService {
   private transporter: nodemailer.Transporter;
 
   constructor(
-    private jwtService: JwtService,
     private configService: ConfigService, // Inject ConfigService to get JWT_SECRET and email settings
   ) {
     // Initialize the transporter with Gmail SMTP settings
@@ -21,11 +20,7 @@ export class MailService {
     });
   }
 
-  // Method to generate verification token
-  generateVerificationToken(email: string): string {
-    const secret = this.configService.get<string>('JWT_SECRET'); // Retrieve secret from env
-    return this.jwtService.sign({ email }, { secret, expiresIn: '15m' });
-  }
+  
 
   // Method to send reservation confirmation email
   async sendReservationConfirmationEmail(

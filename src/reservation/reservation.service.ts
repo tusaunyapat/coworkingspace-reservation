@@ -12,7 +12,6 @@ import { Model } from 'mongoose';
 import { Coworkingspace } from 'src/coworkingspace/schemas/coworkingspace.schema';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { find } from 'rxjs';
 import { Role } from 'src/shared/enums/roles.enum';
 import { MailService } from 'src/mail/mail.service';
 @Injectable()

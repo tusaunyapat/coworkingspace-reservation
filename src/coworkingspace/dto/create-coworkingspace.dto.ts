@@ -6,5 +6,5 @@ export class CreateCoworkingspaceDto {
   readonly openTime: string;
   readonly closeTime: string;
   readonly num_rooms: number;
-  readonly num_booked: number;
+  // readonly num_booked: number;
 }
