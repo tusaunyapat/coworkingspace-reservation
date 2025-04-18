@@ -42,23 +42,25 @@ export class ReservationController {
     return this.reservationService.findMy(userId);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.reservationService.findOne(id);
+  }
+
   @Get('/my-history')
   findMyHistory(@Request() req) {
     const userId = req.user.userId;
     return this.reservationService.findMyHistory(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reservationService.findOne(id);
-  }
-
   @Put(':id')
   update(
     @Param('id') id: string,
+    @Request() req,
     @Body() updateReservationDto: UpdateReservationDto,
   ) {
-    return this.reservationService.update(id, updateReservationDto);
+    const user = req.user;
+    return this.reservationService.update(id, updateReservationDto, user);
   }
 
   @Put(':id/checkin')
@@ -79,6 +81,7 @@ export class ReservationController {
     return this.reservationService.remove(id, userId, userRole);
   }
 
+  @Roles(Role.ADMIN)
   @Delete()
   removeAll() {
     return this.reservationService.removeAll();

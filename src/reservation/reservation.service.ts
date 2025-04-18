@@ -3,6 +3,7 @@ import {
   UseGuards,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
@@ -123,7 +124,22 @@ export class ReservationService {
     return this.reservationModel.findById(id).exec();
   }
 
-  async update(id: string, updateReservationDto: UpdateReservationDto) {
+  async update(id: string, updateReservationDto: UpdateReservationDto, user) {
+    const existing = await this.reservationModel.findById(id);
+
+    if (!existing) {
+      throw new NotFoundException(`Reservation with ID ${id} not found`);
+    }
+
+    if (
+      user.role !== Role.ADMIN &&
+      existing.userId.toString() !== user.userId
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to update this reservation',
+      );
+    }
+
     const coworkingSpace = await this.coworkingspaceModel.findById(
       updateReservationDto.coworkingspaceId,
     );
