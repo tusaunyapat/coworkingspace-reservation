@@ -90,7 +90,12 @@ export class CoworkingspaceService {
   }
 
   findOne(id: string) {
-    return `This action returns a #${id} coworkingspace`;
+    return this.coworkingspaceModel.findById(id).exec().then((coworkingspace) => {
+      if (!coworkingspace) {
+      throw new NotFoundException(`Coworking space with ID ${id} not found`);
+      }
+      return coworkingspace;
+    });
   }
 
   async update(id: string, updateCoworkingspaceDto: UpdateCoworkingspaceDto) {
