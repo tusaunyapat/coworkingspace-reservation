@@ -1,0 +1,61 @@
+
+@startuml Create Reservation
+title Registered User Create Reservation
+
+actor "Registered User" as Client
+participant "Router" as Router
+participant "JwtAuthGuard" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "ReservationController" as Controller
+participant "ReservationService" as Service
+participant "ReservationModel" as ReservationModel
+participant "CoworkingSpaceModel" as SpaceModel
+participant "MailService" as MailService
+
+Client -> Router: POST /reservation (with body)
+Router -> AuthGuard: validate JWT
+AuthGuard -> RolesGuard: check role
+alt Role valid
+    RolesGuard -> Controller: create(req, createReservationDto)
+    Controller -> Service: create(createReservationDto, user)
+
+    Service -> ReservationModel: countDocuments({ userId, status: "reserved" })
+    ReservationModel --> Service: active reservation count
+
+    alt Has 3+ reservations
+        Service --> Controller: throw BadRequest("You already have 3 reservations")
+        Controller --> Router: 400 Bad Request
+    else Less than 3
+        Service -> SpaceModel: findById(createReservationDto.coworkingspaceId)
+        SpaceModel --> Service: coworkingSpace
+
+        alt coworkingSpace not found
+            Service --> Controller: throw NotFound("Coworking space not found")
+            Controller --> Router: 404 Not Found
+        else coworkingSpace found
+            alt time slot outside open hours
+                Service --> Controller: throw BadRequest("Invalid reservation time")
+                Controller --> Router: 400 Bad Request
+            else within open hours
+                Service -> ReservationModel: find overlapping reservations
+                ReservationModel --> Service: overlapping list
+
+                alt num_overlapping >= num_rooms
+                    Service --> Controller: throw BadRequest("No available rooms")
+                    Controller --> Router: 400 Bad Request
+                else slot available
+                    Service -> SpaceModel: update num_booked++
+                    Service -> MailService: sendReservationConfirmationEmail(user.email, details)
+                    MailService --> Service: success
+                    Service -> ReservationModel: save new reservation
+                    ReservationModel --> Service: reservation
+                    Service --> Controller: reservation
+                    Controller --> Router: return reservation
+                end
+            end
+        end
+    end
+else
+    RolesGuard --> Router: return 401 Unauthorized
+end
+@enduml

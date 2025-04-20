@@ -1,0 +1,58 @@
+@startuml
+title Delete Reservation 
+
+actor Admin
+actor User
+
+participant "Router" as Router
+participant "JwtAuthGuard" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "ReservationController" as Controller
+participant "ReservationService" as Service
+participant "ReservationModel" as ReservationModel
+
+== DELETE /reservation/:id ==
+User -> Router: DELETE /reservation/:id
+Admin -> Router: DELETE /reservation/:id
+Router -> AuthGuard: validate JWT
+AuthGuard -> RolesGuard: check role
+alt Role = USER
+    RolesGuard -> Controller: remove(req, id)
+    Controller -> Service: remove(id, userId, role)
+
+    Service -> Service: findMy(userId)
+    Service --> Service: list of user's reservations
+    alt reservation not found
+        Service --> Controller: throw NotFound
+        Controller --> Router: 404 Not Found
+    else reservation found
+        Service -> ReservationModel: findByIdAndDelete(id)
+        ReservationModel --> Service: deleted reservation
+        Service --> Controller: success
+        Controller --> Router: 200 OK
+    end
+else Role = ADMIN
+    RolesGuard -> Controller: remove(req, id)
+    Controller -> Service: remove(id, userId, role)
+    Service -> ReservationModel: findByIdAndDelete(id)
+    ReservationModel --> Service: deleted reservation
+    Service --> Controller: success
+    Controller --> Router: 200 OK
+end
+
+== DELETE /reservation (Admin only) ==
+Admin -> Router: DELETE /reservation
+Router -> AuthGuard: validate JWT
+AuthGuard -> RolesGuard: check role (Admin only)
+alt Role = ADMIN
+    RolesGuard -> Controller: removeAll()
+    Controller -> Service: removeAll()
+    Service -> ReservationModel: deleteMany()
+    ReservationModel --> Service: deletion result
+    Service --> Controller: success
+    Controller --> Router: 200 OK
+else Not Admin
+    RolesGuard --> Router: 403 Forbidden
+end
+
+@enduml

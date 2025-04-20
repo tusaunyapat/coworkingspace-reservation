@@ -1,0 +1,77 @@
+@startuml Admin CRUD CoworkingSpace
+title Admin Manage CoworkingSpace
+actor Admin
+participant "NestJS Router" as Router
+participant "AuthGuard (JWT)" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "CoworkingSpaceController" as Controller
+participant "CoworkingSpaceService" as Service
+participant "CoworkingSpace <<Database>>" as SpaceModel
+
+== Create Coworking Space ==
+
+Admin -> Router: POST /coworkingspace
+Router -> AuthGuard: validate JWT
+
+alt Valid JWT
+    AuthGuard -> RolesGuard: check admin role
+
+    alt Is Admin
+        RolesGuard -> Controller: pass request
+        Controller -> Service: create(createCoworkingSpaceDto)
+        Service -> SpaceModel: insert new coworking space
+        SpaceModel --> Service: success response
+        Service --> Controller: success response
+        Controller --> Router: return 201 Created
+    else Not Admin
+        RolesGuard --> Router: return 403 Forbidden
+    end
+else Invalid JWT
+    AuthGuard --> Router: return 401 Unauthorized
+end
+
+== Edit Coworking Space ==
+
+Admin -> Router: PUT /coworkingspace/:id
+Router -> AuthGuard: validate JWT
+
+alt Valid JWT
+    AuthGuard -> RolesGuard: check admin role
+
+    alt Is Admin
+        RolesGuard -> Controller: update(id, updateCoworkingspaceDto)
+        Controller -> Service: update(id, updateCoworkingspaceDto)
+        Service -> SpaceModel: findByIdAndUpdate(id,updateCoworkingspaceDto)
+        SpaceModel --> Service: update success
+        Service --> Controller: updated coworking space
+        Controller --> Router: return 200 OK
+    else Not Admin
+        RolesGuard --> Router: return 403 Forbidden
+    end
+else Invalid JWT
+    AuthGuard --> Router: return 401 Unauthorized
+end
+
+== Delete Coworking Space ==
+
+Admin -> Router: DELETE /coworkingspace/:id
+Router -> AuthGuard: validate JWT
+
+alt Valid JWT
+    AuthGuard -> RolesGuard: check admin role
+
+    alt Is Admin
+        RolesGuard -> Controller: remove(id)
+        Controller -> Service: remove(id)
+        Service -> SpaceModel: deleteOne({ _id: id })
+        SpaceModel --> Service: deletion success
+        Service --> Controller: deletion confirmed
+        Controller --> Router: return 200 OK or 204 No Content
+    else Not Admin
+        RolesGuard --> Router: return 403 Forbidden
+    end
+else Invalid JWT
+    AuthGuard --> Router: return 401 Unauthorized
+end
+
+@enduml

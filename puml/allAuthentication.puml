@@ -1,0 +1,70 @@
+
+' register, login, logout
+@startuml
+title Auth + View Reservation Logic
+
+actor User
+actor Admin
+
+participant "NestJS Router" as Router
+participant "LocalAuthGuard" as LocalAuthGuard
+participant "LocalStrategy" as Strategy
+participant "JwtAuthGuard" as JwtAuthGuard
+participant "RolesGuard" as RolesGuard
+participant "AuthController" as AuthController
+participant "AuthService" as AuthService
+participant "UserService" as UserService
+participant "UserController" as UserController
+participant "UserModel" as Database
+
+== User Login Flow ==
+User -> Router: POST /auth/login (email, password)
+Router -> LocalAuthGuard: Validate request
+LocalAuthGuard -> Strategy: validate(email, password)
+Strategy -> AuthService: validateUser(email, password)
+AuthService -> UserService: findByEmail(email)
+UserService -> Database: Query user by email
+Database --> UserService: Return user data
+UserService --> AuthService: Return user data
+AuthService -> AuthService: Compare password (bcrypt)
+AuthService --> Strategy: Return user
+Strategy --> LocalAuthGuard: Authentication Passed
+LocalAuthGuard -> AuthController: Forward request
+AuthController -> AuthService: login(user)
+AuthService -> AuthService: Generate JWT token
+AuthService --> AuthController: Return token
+AuthController -> UserService: Update user data (if unbanned)
+UserService -> Database: Update user data
+Database --> UserService: Update success
+AuthController --> Router: Set Cookie (access_token)
+Router --> User: 200 OK ("Successfully logged in")
+
+== User Logout Flow ==
+User -> Router: POST /auth/logout
+Router -> AuthController: Forward request
+AuthController -> Router: Clear Cookie (access_token)
+Router --> User: 200 OK ("Successfully logged out")
+
+== Register User ==
+User -> Router: POST /users/register (RegisterDTO)
+Router -> UserController: Forward request
+UserController -> UserService: create(registerDTO)
+UserService -> Database: Save new user
+Database --> UserService: Return saved user
+UserService --> UserController: Return created user
+UserController --> Router: 201 Created (User Data)
+Router --> User: Return created user
+
+== Get User Profile ==
+User -> Router: GET /users/profile
+Router -> JwtAuthGuard: Validate JWT
+JwtAuthGuard -> UserController: Forward request
+UserController -> UserService: findByEmail(req.user.email)
+UserService -> Database: Query user by email
+Database --> UserService: Return user data
+UserService --> UserController: Return user data
+UserController --> Router: 200 OK (User Data)
+Router --> User: Return user profile
+
+
+@enduml

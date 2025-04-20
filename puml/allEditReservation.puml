@@ -1,0 +1,86 @@
+@startuml
+title Edit & Check-In Reservation 
+
+actor Admin
+actor User
+
+participant "Router" as Router
+participant "JwtAuthGuard" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "ReservatioController" as Controller
+participant "ReservatioService" as Service
+participant "CoworkingSpaceModel" as CoworkingModel
+participant "ReservationModel" as ReservationModel
+
+== PUT /reservation/:id (Update Reservation) ==
+
+
+Admin -> Router: PUT /reservation/:id
+
+User -> Router: PUT /reservation/:id
+
+
+Router -> AuthGuard: validate JWT
+AuthGuard -> RolesGuard: check role
+RolesGuard -> Controller: update(id, body)
+Controller -> Service: update(id, updateDto)
+
+Service -> ReservationModel: findById(id)
+alt not found
+    ReservationModel --> Service: null
+    Service --> Controller: throw 404
+    Controller --> Router: 404 Not Found
+else found
+    ReservationModel --> Service: reservation
+    alt User and not owner
+        Service --> Controller: throw 403 Forbidden
+        Controller --> Router: 403 Forbidden
+    else OK
+        Service -> CoworkingModel: findById(updateDto.coworkingspaceId)
+        alt Coworking not found
+            CoworkingModel --> Service: null
+            Service --> Controller: throw 404
+            Controller --> Router: 404 Not Found
+        else
+            CoworkingModel --> Service: coworkingSpace
+            Service -> ReservationModel: find overlapping reservations
+            ReservationModel --> Service: overlaps
+            alt full
+                Service --> Controller: throw 400
+                Controller --> Router: 400 BadRequest
+            else
+                Service -> ReservationModel: findByIdAndUpdate(...)
+                alt not found
+                    ReservationModel --> Service: null
+                    Service --> Controller: throw 404
+                    Controller --> Router: 404 Not Found
+                else updated
+                    ReservationModel --> Service: updatedReservation
+                    Service --> Controller: updatedReservation
+                    Controller --> Router: 200 OK
+                end
+            end
+        end
+    end
+end
+
+== PUT /reservation/:id/checkin ==
+Admin -> Router: PUT /reservation/:id/checkin
+User -> Router: PUT /reservation/:id/checkin
+Router -> AuthGuard: validate JWT
+AuthGuard -> Controller: checkin(id, userId, dto)
+
+Controller -> Service: checkin(id, userId, dto)
+Service -> ReservationModel: findOneAndUpdate({ _id: id, userId })
+
+alt not found
+    ReservationModel --> Service: null
+    Service --> Controller: throw 404
+    Controller --> Router: 404 Not Found
+else success
+    ReservationModel --> Service: reservation
+    Service --> Controller: reservation
+    Controller --> Router: 200 OK
+end
+
+@enduml

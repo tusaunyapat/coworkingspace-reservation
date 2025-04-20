@@ -1,0 +1,72 @@
+@startuml view
+title View Coworking Space
+
+actor "Registered User" as Client 
+participant "Router" as Router
+participant "AuthGuard" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "Controller" as Controller
+participant "Service" as Service
+participant "CoworkingSpaceModel" as SpaceModel
+participant "ReservationModel" as ReservationModel
+
+== GET /coworkingspace ==
+
+Client -> Router: GET /coworkingspace\n?address&date&startTime&endTime
+Router -> AuthGuard: validate JWT
+alt JWT valid
+    AuthGuard -> RolesGuard: check role
+
+    alt role == ADMIN
+        RolesGuard -> Controller: findAll(req)
+        Controller -> Service: findAll({}, "admin")
+        Service -> SpaceModel: find()
+        SpaceModel --> Service: all coworking spaces
+        Service --> Controller: all spaces
+        Controller --> Router: return all coworking spaces
+    else role == USER
+        RolesGuard -> Controller: findAll(req)
+        Controller -> Service: findAll(filters, "user")
+        Service -> SpaceModel: find()
+        SpaceModel --> Service: all coworking spaces
+
+        loop each coworking space
+            Service -> ReservationModel: find overlapping reservations\nby date & time
+            ReservationModel --> Service: overlapping reservations
+
+            alt availableRooms > overlapping
+                Service -> Service: include coworking space
+            else
+                Service -> Service: exclude coworking space
+            end
+        end
+
+        Service -> Controller: filtered available coworking spaces
+        Controller -> Router: return available coworking spaces
+    end
+else JWT invalid
+    AuthGuard --> Router: return 401 Unauthorized
+end
+
+== GET /coworkingspace/:id ==
+
+Client -> Router: GET /coworkingspace/:id
+Router -> AuthGuard: validate JWT
+alt JWT valid
+    AuthGuard -> Controller: findOne(id)
+    Controller -> Service: findOne(id)
+    Service -> SpaceModel: findById(id)
+    SpaceModel --> Service: coworking space or null
+
+    alt coworking space found
+        Service --> Controller: coworking space data
+        Controller --> Router: return coworking space data
+    else coworking space not found
+        Service -> Controller: throw NotFoundException
+        Controller -> Router: return 404 Not Found
+    end
+else
+    AuthGuard --> Router: return 401 Unauthorized
+end
+
+@enduml

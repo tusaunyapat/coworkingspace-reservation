@@ -12,7 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-/puml
+
 
 # OS
 .DS_Store

@@ -1,0 +1,188 @@
+
+
+@startuml Class Diagram
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+
+' Define packages for modular structure
+package "App Module" {
+  class AppModule {
+    +constructor()
+  }
+}
+
+package "User Feature" {
+  class UserModule {}
+  class UserController {
+    - userService: UserService
+    +create(registerDto: RegisterDto): Promise<User>
+    +findAll()
+    +getProfile()
+    +remove(id: string)
+  }
+  class UserService {
+    -userModel: Model<UserDocument>
+    +create(registerDto: RegisterDto): Promise<User>
+    +findAll(): : Promise<User[]>
+    +findByEmail(email: string): Promise<UserDocument | null>
+    +remove(id: string): Promise<UserDocument | null>
+  }
+  class User {
+    +email: string
+    +password: string
+    +name: string
+    +tel: string
+    +role: string
+  }
+  
+  class RegisterDTO {
+    +email: string
+    +password: string
+    +name: string
+    +tel: string
+    +role: string
+  }
+
+
+  UserModule --> UserController
+  UserModule --> UserService
+  UserController --> UserService
+  UserService --> User
+  UserService --> RegisterDTO
+}
+
+package "CoworkingSpace Feature" {
+  class CoworkingSpaceModule {}
+  class CoworkingSpaceController {
+    - coworkingSpaceService: CoworkingSpaceService
+    +create(createCoworkingspaceDto: CreateCoworkingspaceDto)
+    +findAll()
+    +findOne(id: string)
+    +update(id: string,updateCoworkingspaceDto: UpdateCoworkingspaceDto)
+    +remove(id: string)
+  }
+
+  class CoworkingSpaceService {
+    -coworkingspaceModel: Model<CoworkingspaceDocument>
+    -reservationModel: Model<ReservationDocument>
+    +create(createCoworkingspaceDto: CreateCoworkingspaceDto): Promise<Coworkingspace>
+    +findAll(filter: {},role: string)
+    +findOne(id: string)
+    +update(id: string, updateCoworkingspaceDto:UpdateCoworkingspaceDto)
+    +remove(id: string)
+  }
+  class CoworkingSpace {
+    +id: UUID
+    +name: string
+    +address: string
+    +tel: string
+    +email: string
+    +openTime: string
+    +closeTime: string
+    +num_rooms: number
+    +num_booked: number
+  }
+
+  class CreateCoworkingspaceDto {
+    +name: string
+    +address: string
+    +tel: string
+    +email: string
+    +openTime: string
+    +closeTime: string
+    +num_rooms: number
+    +num_booked: number
+  }
+
+  class UpdateCoworkingspaceDto {
+    +name?: string;
+    +address?: string;
+    +tel?: string;
+    +email?: string;
+    +openTime?: string;
+    +closeTime?: string;
+    +num_rooms?: number;
+    +num_booked?: number;
+  }
+
+
+  CoworkingSpaceModule --> CoworkingSpaceController
+  CoworkingSpaceModule --> CoworkingSpaceService
+  CoworkingSpaceController --> CoworkingSpaceService
+  CoworkingSpaceService --> CoworkingSpace
+  CoworkingSpaceService --> CreateCoworkingspaceDto
+  CoworkingSpaceService --> UpdateCoworkingspaceDto
+}
+
+package "Reservation Feature" {
+  class ReservationModule {
+  }
+  class ReservationController {
+    -reservationService: ReservationService
+    +create(createReservationDto: CreateReservationDto) 
+    +findAll()
+    +findMy()
+    +findMyHistory()
+    +findOne(id: string)
+    +update(id: string,updateReservationDto: UpdateReservationDto)
+    +checkin(id: string,updateReservationDto: UpdateReservationDto)
+    +remove(id: string) 
+    +removeAll()
+  }
+  class ReservationService {
+    -reservationModel: Model<Reservation>
+    -coworkingspaceModel: Model<Coworkingspace>
+    +create(createReservationDto: CreateReservationDto,user: {}, : Promise<Reservation>
+    +findAll()
+    +findMy(userId)
+    +findMyHistory(userId)
+    +findOne(id: string)
+    +update(id: string, updateReservationDto: UpdateReservationDto)
+    +checkin(id: string,userId: string,updateReservationDto: UpdateReservationDto): Promise<Reservation>
+    +remove(id: string, userId: string, userRole: string)
+    +removeAll()
+    
+  }
+  class Reservation {
+    +userId: number
+    +coworkingSpaceId: number
+    +startTime: string
+    +endTime: string
+    +date: Date
+    +status: string
+   
+  }
+
+  class CreateReservationDto {
+    +user: string;
+    +coworkingspaceId: string;
+    +status: string; 
+    +date: string;
+    +startTime: string;
+    +endTime: string;
+  }
+
+  class UpdateReservationDto {
+    +user?: string;
+    +coworkingspaceId?: string;
+    +status?: string;
+    +date?: string;
+    +startTime?: string;
+    +endTime?: string;
+  }
+
+  ReservationModule --> ReservationController
+  ReservationModule --> ReservationService
+  ReservationController --> ReservationService
+  ReservationService --> Reservation
+  ReservationService --> CreateReservationDto
+  ReservationService --> UpdateReservationDto
+
+}
+
+' Define relationships between modules
+AppModule --> UserModule
+AppModule --> CoworkingSpaceModule
+AppModule --> ReservationModule
+
+@enduml

@@ -1,0 +1,57 @@
+@startuml
+title View Reservations
+
+actor Admin
+actor User
+
+participant "Router" as Router
+participant "JwtAuthGuard" as AuthGuard
+participant "RolesGuard" as RolesGuard
+participant "ReservationController" as Controller
+participant "ReservationService" as Service
+participant "ReservationModel" as Model
+
+== Find All ==
+Admin -> Router: GET /reservation/all
+Router -> AuthGuard: validate JWT
+AuthGuard -> RolesGuard: check if Admin
+RolesGuard -> Controller: findAll()
+Controller -> Service: findAll()
+Service -> Model: find()
+Model --> Service: allReservations
+Service --> Controller: allReservations
+Controller --> Router: 200 OK (list)
+
+== Find My Reservations ==
+User -> Router: GET /reservation/myreservations
+Router -> AuthGuard: validate JWT
+AuthGuard -> Controller: findMy(req)
+Controller -> Service: findMy(userId)
+Service -> Model: find({ userId, status: 'reserved' })
+Model --> Service: myReservations
+Service --> Controller: myReservations
+Controller --> Router: 200 OK (list)
+
+== Find One Reservation ==
+User -> Router: GET /reservation/:id
+Router -> AuthGuard: validate JWT
+
+alt Valid JWT
+    AuthGuard --> Controller: pass request with user info
+    Controller -> Service: findReservation(id, userId, userRole)
+    Service -> Model: findById(id)
+    Model --> Service: reservation
+
+    alt userId == reservation.userId OR role == ADMIN
+        Service --> Controller: reservation
+        Controller --> Router: 200 OK (reservation)
+    else
+        Service --> Controller: throw ForbiddenException
+        Controller --> Router: 403 Forbidden
+    end
+
+else Invalid JWT
+    AuthGuard --> Router: 401 Unauthorized
+end
+
+@enduml

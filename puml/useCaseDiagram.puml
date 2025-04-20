@@ -1,0 +1,19 @@
+@startuml UseCaseDiagram
+title Use Case Diagram
+left to right direction
+actor User
+actor Admin
+
+rectangle "Coworking Space Reservation System" {
+  User --> (Registeration and LogIn system)
+
+  User --> (View Available Coworking Spaces)
+  User --> (Manage Own Reservation)
+
+ 
+  Admin --> (Registeration and LogIn system)
+  Admin --> (Manage Any Reservation)
+  Admin --> (Manage Any CoworkingSpace)
+
+}
+@enduml
