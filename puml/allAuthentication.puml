@@ -3,8 +3,8 @@
 @startuml
 title Auth + View Reservation Logic
 
-actor User
-actor Admin
+actor "Registered User" as User
+
 
 participant "NestJS Router" as Router
 participant "LocalAuthGuard" as LocalAuthGuard

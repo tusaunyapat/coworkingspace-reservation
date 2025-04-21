@@ -34,6 +34,7 @@ Controller --> Router: 200 OK (list)
 
 == Find One Reservation ==
 User -> Router: GET /reservation/:id
+Admin -> Router: GET /reservation/:id
 Router -> AuthGuard: validate JWT
 
 alt Valid JWT
