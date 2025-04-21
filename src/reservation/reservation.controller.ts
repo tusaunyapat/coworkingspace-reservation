@@ -42,15 +42,16 @@ export class ReservationController {
     return this.reservationService.findMy(userId);
   }
 
+  @Get('/history')
+  findMyHistory(@Request() req: { user: { userId: string } }) {
+    const userId = req.user.userId;
+    console.log(userId);
+    return this.reservationService.findMyHistory(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reservationService.findOne(id);
-  }
-
-  @Get('/my-history')
-  findMyHistory(@Request() req) {
-    const userId = req.user.userId;
-    return this.reservationService.findMyHistory(userId);
   }
 
   @Put(':id')
