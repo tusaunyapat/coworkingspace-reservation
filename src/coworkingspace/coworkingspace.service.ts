@@ -38,9 +38,9 @@ export class CoworkingspaceService {
   async findAll(
     filter: {
       address?: string;
-      date?: Date;
-      startTime?: Date;
-      endTime?: Date;
+      date?: string;
+      startTime?: string;
+      endTime?: string;
     } = {},
     role: string,
   ) {
@@ -77,7 +77,12 @@ export class CoworkingspaceService {
           });
 
           console.log('Overlapping reservations:', overlappingReservations);
-
+          if (filter.startTime && cws.openTime > filter.startTime) {
+            return null;
+          }
+          if (filter.endTime && cws.closeTime < filter.endTime) {
+            return null;
+          }
           // Check if there are fewer overlapping reservations than the available rooms
           if (overlappingReservations.length < cws.num_rooms) {
             // Check filters and ensure the coworking space matches the requested criteria
