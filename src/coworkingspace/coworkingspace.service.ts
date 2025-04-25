@@ -53,8 +53,12 @@ export class CoworkingspaceService {
       console.log('date', filter.date);
       console.log('startTime', filter.startTime);
       console.log('endTime', filter.endTime);
+
+      const addr = filter.address ? filter.address : '';
       // Fetch all coworking spaces
-      const allCoworkingSpaces = await this.coworkingspaceModel.find().exec();
+      const allCoworkingSpaces = await this.coworkingspaceModel
+        .find({ address: { $regex: addr, $options: 'i' } })
+        .exec();
 
       // Use Promise.all with map to process all coworking spaces asynchronously
       const availableCoworkingSpaces = await Promise.all(
@@ -90,12 +94,17 @@ export class CoworkingspaceService {
   }
 
   findOne(id: string) {
-    return this.coworkingspaceModel.findById(id).exec().then((coworkingspace) => {
-      if (!coworkingspace) {
-      throw new NotFoundException(`Coworking space with ID ${id} not found`);
-      }
-      return coworkingspace;
-    });
+    return this.coworkingspaceModel
+      .findById(id)
+      .exec()
+      .then((coworkingspace) => {
+        if (!coworkingspace) {
+          throw new NotFoundException(
+            `Coworking space with ID ${id} not found`,
+          );
+        }
+        return coworkingspace;
+      });
   }
 
   async update(id: string, updateCoworkingspaceDto: UpdateCoworkingspaceDto) {
